@@ -106,6 +106,7 @@ export async function getExploreUrl(
         ...state,
         datasource: panelDatasource.name,
         queries: exploreTargets.map(t => ({ ...t, datasource: panelDatasource.name })),
+        originPanel: panel.id,
       };
     }
 
@@ -216,6 +217,7 @@ export function parseUrlState(initial: string | undefined): ExploreUrlState {
     range: DEFAULT_RANGE,
     ui: DEFAULT_UI_STATE,
     mode: null,
+    originPanel: null,
   };
 
   if (!parsed) {
@@ -252,7 +254,8 @@ export function parseUrlState(initial: string | undefined): ExploreUrlState {
       }
     : DEFAULT_UI_STATE;
 
-  return { datasource, queries, range, ui, mode };
+  const originPanel = parsedSegments.filter(segment => isSegment(segment, 'originPanel'))[0];
+  return { datasource, queries, range, ui, mode, originPanel };
 }
 
 export function serializeStateToUrlParam(urlState: ExploreUrlState, compact?: boolean): string {

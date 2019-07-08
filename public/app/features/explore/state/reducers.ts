@@ -218,7 +218,7 @@ export const itemReducer = reducerFactory<ExploreItemState>({} as ExploreItemSta
   .addMapper({
     filter: initializeExploreAction,
     mapper: (state, action): ExploreItemState => {
-      const { containerWidth, eventBridge, queries, range, mode, ui } = action.payload;
+      const { containerWidth, eventBridge, queries, range, mode, ui, originPanel } = action.payload;
       return {
         ...state,
         containerWidth,
@@ -229,6 +229,7 @@ export const itemReducer = reducerFactory<ExploreItemState>({} as ExploreItemSta
         initialized: true,
         queryKeys: getQueryKeys(queries, state.datasourceInstance),
         ...ui,
+        originPanel,
         update: makeInitialUpdateState(),
       };
     },
@@ -256,6 +257,8 @@ export const itemReducer = reducerFactory<ExploreItemState>({} as ExploreItemSta
         mode = supportedModes[0];
       }
 
+      const originPanel = state.urlState && state.urlState.originPanel;
+
       // Custom components
       const StartPage = datasourceInstance.components.ExploreStartPage;
 
@@ -270,6 +273,7 @@ export const itemReducer = reducerFactory<ExploreItemState>({} as ExploreItemSta
         queryKeys: [],
         supportedModes,
         mode,
+        originPanel,
       };
     },
   })
