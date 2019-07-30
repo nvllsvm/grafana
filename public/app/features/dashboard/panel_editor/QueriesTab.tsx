@@ -14,6 +14,7 @@ import { QueryEditorRow } from './QueryEditorRow';
 import { getDatasourceSrv } from 'app/features/plugins/datasource_srv';
 import { getBackendSrv } from 'app/core/services/backend_srv';
 import config from 'app/core/config';
+import store from 'app/core/store';
 
 // Types
 import { PanelModel } from '../state/PanelModel';
@@ -23,10 +24,14 @@ import { LoadingState } from '@grafana/data';
 import { PluginHelp } from 'app/core/components/PluginHelp/PluginHelp';
 import { PanelQueryRunnerFormat } from '../state/PanelQueryRunner';
 import { Unsubscribable } from 'rxjs';
+import { StoreState } from 'app/types';
+import { connectWithStore } from 'app/core/utils/connectWithReduxStore';
 
 interface Props {
   panel: PanelModel;
   dashboard: DashboardModel;
+  fromExplore?: boolean;
+  queryRows?: number;
 }
 
 interface State {
@@ -58,10 +63,37 @@ export class QueriesTab extends PureComponent<Props, State> {
   };
 
   componentDidMount() {
-    const { panel } = this.props;
+    const { panel, fromExplore, queryRows } = this.props;
     const queryRunner = panel.getQueryRunner();
 
     this.querySubscription = queryRunner.subscribe(this.panelDataObserver, PanelQueryRunnerFormat.both);
+
+    if (fromExplore) {
+      const datasourceType = this.datasources.filter(datasource => datasource.value === panel.datasource)[0].meta.id;
+      const exploreQueries: ReadonlyArray<DataQuery> = store
+        .getObject(`grafana.explore.history.${datasourceType}`)
+        .map(({ query }) => query);
+
+      if (!exploreQueries) {
+        return;
+      }
+
+      const oldQueriesById = _.keyBy(panel.targets, 'refId');
+
+      const mergedQueries = exploreQueries
+        .slice(0, queryRows)
+        .reverse()
+        .map(query => ({
+          ...oldQueriesById[query.refId],
+          ...query,
+          context: 'panel',
+        }));
+
+      panel.targets = mergedQueries;
+
+      panel.refresh();
+      this.forceUpdate();
+    }
   }
 
   componentWillUnmount() {
@@ -262,3 +294,10 @@ export class QueriesTab extends PureComponent<Props, State> {
     );
   }
 }
+
+const mapStateToProps = (state: StoreState) => ({
+  fromExplore: !!state.location.query.fromExplore,
+  queryRows: state.location.query.queryRows,
+});
+
+export default connectWithStore(QueriesTab, mapStateToProps);
