@@ -19,8 +19,7 @@ module.exports = merge(common, {
   },
 
   module: {
-    rules: [
-      {
+    rules: [{
         test: /\.tsx?$/,
         enforce: 'pre',
         exclude: /node_modules/,
@@ -43,11 +42,13 @@ module.exports = merge(common, {
         },
       },
       require('./sass.rule.js')({
-        sourceMap: false, preserveUrl: false
+        sourceMap: false,
+        preserveUrl: false
       })
     ]
   },
   optimization: {
+    nodeEnv: 'production',
     minimizer: [
       new TerserPlugin({
         cache: false,
@@ -66,12 +67,15 @@ module.exports = merge(common, {
       filename: path.resolve(__dirname, '../../public/views/error.html'),
       template: path.resolve(__dirname, '../../public/views/error-template.html'),
       inject: false,
+      excludeChunks: ['dark', 'light'],
+      chunksSortMode: 'none'
     }),
     new HtmlWebpackPlugin({
       filename: path.resolve(__dirname, '../../public/views/index.html'),
       template: path.resolve(__dirname, '../../public/views/index-template.html'),
       inject: 'body',
-      chunks: ['vendor', 'app'],
+      excludeChunks: ['manifest', 'dark', 'light'],
+      chunksSortMode: 'none'
     }),
     function () {
       this.hooks.done.tap('Done', function (stats) {

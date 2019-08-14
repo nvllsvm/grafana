@@ -89,3 +89,6 @@ theOutput/
 
 # Ignore go local build dependencies
 /scripts/go/bin/**
+
+# Ignore compilation stats from `yarn stats`
+compilation-stats.json

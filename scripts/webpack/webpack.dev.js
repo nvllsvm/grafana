@@ -25,8 +25,7 @@ module.exports = merge(common, {
   },
 
   module: {
-    rules: [
-      {
+    rules: [{
         test: /\.tsx?$/,
         enforce: 'pre',
         exclude: /node_modules/,
@@ -48,7 +47,10 @@ module.exports = merge(common, {
           },
         },
       },
-      require('./sass.rule.js')({ sourceMap: false, preserveUrl: false }),
+      require('./sass.rule.js')({
+        sourceMap: false,
+        preserveUrl: false
+      }),
       {
         test: /\.(png|jpg|gif|ttf|eot|svg|woff(2)?)(\?[a-z0-9=&.]+)?$/,
         loader: 'file-loader'
@@ -65,12 +67,15 @@ module.exports = merge(common, {
       filename: path.resolve(__dirname, '../../public/views/error.html'),
       template: path.resolve(__dirname, '../../public/views/error-template.html'),
       inject: false,
+      chunksSortMode: 'none',
+      excludeChunks: ['dark', 'light']
     }),
     new HtmlWebpackPlugin({
       filename: path.resolve(__dirname, '../../public/views/index.html'),
       template: path.resolve(__dirname, '../../public/views/index-template.html'),
       inject: 'body',
-      chunks: ['manifest', 'vendor', 'app'],
+      chunksSortMode: 'none',
+      excludeChunks: ['dark', 'light']
     }),
     new webpack.NamedModulesPlugin(),
     new webpack.HotModuleReplacementPlugin(),
