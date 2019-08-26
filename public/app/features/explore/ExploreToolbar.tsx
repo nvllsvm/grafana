@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import { hot } from 'react-hot-loader';
 
 import { ExploreId, ExploreMode } from 'app/types/explore';
-import { DataSourceSelectItem, ToggleButtonGroup, ToggleButton, DataQuery, Tooltip } from '@grafana/ui';
+import { DataSourceSelectItem, ToggleButtonGroup, ToggleButton, DataQuery, Tooltip, ButtonSelect } from '@grafana/ui';
 import { RawTimeRange, TimeZone, TimeRange, LoadingState, SelectableValue } from '@grafana/data';
 import { DataSourcePicker } from 'app/core/components/Select/DataSourcePicker';
 import { StoreState } from 'app/types/store';
@@ -74,7 +74,7 @@ interface StateProps {
   selectedModeOption: SelectableValue<ExploreMode>;
   hasLiveOption: boolean;
   isLive: boolean;
-  originPanel: number;
+  originPanelId: number;
   queries: DataQuery[];
 }
 
@@ -117,21 +117,20 @@ export class UnConnectedExploreToolbar extends PureComponent<Props, {}> {
     changeMode(exploreId, mode);
   };
 
-  returnToPanel = async () => {
-    const { originPanel, queries } = this.props;
+  returnToPanel = async ({ withChanges = false } = {}) => {
+    const { originPanelId, queries } = this.props;
 
     const dashboardSrv = getDashboardSrv();
     const dash = dashboardSrv.getCurrent();
-
+    const withChangesParams = withChanges ? { fromExplore: true, queryRowCount: queries.length } : {};
     const titleSlug = kbn.slugifyForUrl(dash.title);
     getLocationSrv().update({
       path: `/d/${dash.uid}/:${titleSlug}`,
       query: {
         fullscreen: true,
         edit: true,
-        panelId: originPanel,
-        fromExplore: true,
-        queryRows: queries.length,
+        panelId: originPanelId,
+        ...withChangesParams,
       },
     });
   };
@@ -154,10 +153,10 @@ export class UnConnectedExploreToolbar extends PureComponent<Props, {}> {
       selectedModeOption,
       hasLiveOption,
       isLive,
-      originPanel,
+      originPanelId,
     } = this.props;
 
-    const originDashboardIsEditable = originPanel && getDashboardSrv().getCurrent().meta.canSave;
+    const originDashboardIsEditable = originPanelId && getDashboardSrv().getCurrent().meta.canSave;
 
     return (
       <div className={splitted ? 'explore-toolbar splitted' : 'explore-toolbar'}>
@@ -214,6 +213,27 @@ export class UnConnectedExploreToolbar extends PureComponent<Props, {}> {
               </div>
             ) : null}
 
+            {originPanelId && !splitted && (
+              <div className="explore-toolbar-content-item">
+                <Tooltip content={'Return to panel'} placement="bottom">
+                  <button
+                    className="btn btn--radius-right-0 navbar-button navbar-button--border-right-0"
+                    onClick={() => this.returnToPanel()}
+                  >
+                    <i className="fa fa-arrow-left" />
+                  </button>
+                </Tooltip>
+                {originDashboardIsEditable && (
+                  <ButtonSelect
+                    className="navbar-button--attached btn--radius-left-0$"
+                    options={[{ label: 'Return to panel with changes', value: '' }]}
+                    onChange={() => this.returnToPanel({ withChanges: true })}
+                    maxMenuHeight={380}
+                  />
+                )}
+              </div>
+            )}
+
             {exploreId === 'left' && !splitted ? (
               <div className="explore-toolbar-content-item">
                 {createResponsiveButton({
@@ -240,16 +260,6 @@ export class UnConnectedExploreToolbar extends PureComponent<Props, {}> {
                 onRunQuery={this.onRunQuery}
               />
             </div>
-
-            {originDashboardIsEditable && !splitted && (
-              <div className="explore-toolbar-content-item">
-                <Tooltip content={'Return to panel'} placement="bottom">
-                  <button className="btn navbar-button" onClick={this.returnToPanel}>
-                    <i className="fa fa-arrow-left" />
-                  </button>
-                </Tooltip>
-              </div>
-            )}
 
             <div className="explore-toolbar-content-item">
               <button className="btn navbar-button" onClick={this.onClearAll}>
@@ -287,7 +297,7 @@ const mapStateToProps = (state: StoreState, { exploreId }: OwnProps): StateProps
     supportedModes,
     mode,
     isLive,
-    originPanel,
+    originPanelId,
     queries,
   } = exploreItem;
   const selectedDatasource = datasourceInstance
@@ -337,7 +347,7 @@ const mapStateToProps = (state: StoreState, { exploreId }: OwnProps): StateProps
     selectedModeOption,
     hasLiveOption,
     isLive,
-    originPanel,
+    originPanelId,
     queries,
   };
 };

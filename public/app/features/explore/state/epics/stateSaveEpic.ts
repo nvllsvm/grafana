@@ -38,7 +38,7 @@ const urlStateFromItemState = (exploreItem: ExploreItemState): ExploreUrlState =
     showingTable: exploreItem.showingTable,
     dedupStrategy: exploreItem.dedupStrategy,
   },
-  originPanel: exploreItem.originPanel,
+  originPanelId: exploreItem.originPanelId,
 });
 
 export const stateSaveEpic: Epic<ActionOf<any>, ActionOf<any>, StoreState> = (action$, state$) => {

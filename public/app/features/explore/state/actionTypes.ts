@@ -95,7 +95,7 @@ export interface InitializeExplorePayload {
   range: TimeRange;
   mode: ExploreMode;
   ui: ExploreUIState;
-  originPanel: number;
+  originPanelId: number;
 }
 
 export interface LoadDatasourceFailurePayload {
